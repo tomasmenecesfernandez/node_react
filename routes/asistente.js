@@ -7,6 +7,7 @@ const openai = new OpenAI({
 
 export async function hacer_consulta_ia(texto) {
     try {
+            if (!texto) return JSON.stringify({ error: true, detalle: "El texto de consulta está vacío" });
         const ahora = new Date();
         const offset = ahora.getTimezoneOffset() * 60000;
         const fechaActualISO = new Date(ahora.getTime() - offset)
