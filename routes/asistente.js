@@ -13,13 +13,12 @@ export async function hacer_consulta_ia(texto) {
             .toISOString()
             .slice(0, 19);
 
-        if (fechaActualISO) {
-            const completion = await openai.chat.completions.create({
-                model: "openrouter/free",
-                messages: [
-                    {
-                        role: "system",
-                        content: `Sos un asistente que interpreta órdenes en español para un calendario.
+        const completion = await openai.chat.completions.create({
+            model: "openrouter/free",
+            messages: [
+                {
+                    role: "system",
+                    content: `Sos un asistente que interpreta órdenes en español para un calendario.
     Fecha y hora actual: ${fechaActualISO} (formato ISO, zona horaria local del usuario).
 
     Analiza el siguiente pedido del usuario y devolvé SOLO una lista con un JSON o conjunto de JSONS( si te mencionan mas de una actividad) (sin markdown, sin texto adicional) con esta forma exacta, ahora te paso la plantilla pero vos podes agregarle los json que te pida el cliente no hay limite:
@@ -48,16 +47,17 @@ export async function hacer_consulta_ia(texto) {
     
 
     Pedido del usuario: "${texto}"`,
-                    },
-                    { role: "user", content: texto },
-                ],
-            });
+                },
+                { role: "user", content: texto },
+            ],
+        });
 
-            let respuestaIA = completion.choices[0].message.content;
-            respuestaIA = respuestaIA.replace(/```json|```/g, "").trim();
-
-            return respuestaIA;
+        const respuestaIA = completion?.choices?.[0]?.message?.content;
+        if (!respuestaIA) {
+            throw new Error("La IA no devolvió ninguna respuesta");
         }
+
+        return respuestaIA.replace(/```json|```/g, "").trim();
     } catch (error) {
         console.error("Error al consultar OpenRouter:", error);
         return JSON.stringify({ error: true, detalle: error.message });
