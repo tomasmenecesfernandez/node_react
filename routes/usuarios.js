@@ -5,7 +5,7 @@ const router_usuario = express.Router();
 
 router_usuario.get("/", async (req, res) => {
     try {
-        res.send(await hacer_consulta("select * from usuarios"));
+        res.send("xxxx funcionaaaaa");
     } catch (error) {
         res.send(error.message);
     }
