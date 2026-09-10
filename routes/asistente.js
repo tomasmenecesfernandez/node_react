@@ -64,13 +64,3 @@ export async function hacer_consulta_ia(texto) {
         return JSON.stringify({ error: true, detalle: error.message });
     }
 }
-app.post("/asistente", async (req, res) => {
-    try {
-        const datos = req.body;
-        const respuesta = await hacer_consulta_ia(datos.prompt);
-        res.json({ status: "success", respuesta: respuesta });
-    } catch (error) {
-        res.status(500).json({ status: "error", detalle: error.message });
-    }
-});
-
