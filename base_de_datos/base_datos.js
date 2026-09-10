@@ -1,22 +1,35 @@
-import mysql2 from "mysql2/promise";
+import pg from 'pg';
 
-const hacer_consulta = async (consulta) => {
-    let conexion;
+const hacer_consulta = async (consulta, valores = []) => {
+    let cliente;
     try {
-        conexion = await mysql2.createConnection({
+        // Creamos la conexión compatible con PostgreSQL y Neon
+        cliente = new pg.Client({
             host: process.env.DB_HOST,
             database: process.env.DB_NAME,
             password: process.env.DB_PASSWORD,
             user: process.env.DB_USER,
-            port: process.env.DB_PORT || 3306,
+            port: process.env.DB_PORT || 5432,
+            ssl: {
+                rejectUnauthorized: false // Obligatorio para la seguridad de Neon
+            }
         });
-        const [respuesta] = await conexion.query(consulta);
-        return respuesta;
+        
+        await cliente.connect();
+        
+        // Ejecutamos la consulta pasándole los valores de forma segura
+        const respuesta = await cliente.query(consulta, valores);
+        
+        // En PostgreSQL los resultados de las filas vienen dentro de la propiedad '.rows'
+        return respuesta.rows;
+        
     } catch (error) {
         console.error("Error en la consulta a la base de datos:", error.message);
+        throw error; // Lanzamos el error para que el endpoint de Express lo cachee correctamente
     } finally {
-        if (conexion) await conexion.end();
+        if (cliente) await cliente.end();
     }
 };
+
 
 export default hacer_consulta;
