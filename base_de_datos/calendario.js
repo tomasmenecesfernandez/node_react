@@ -52,7 +52,7 @@ const modificar_tarea = async (plantilla, usuario_id) => {
 const borrar_tarea = async (plantilla, usuario_id) => {
     const query = `
         DELETE FROM tareas 
-        WHERE usuario_id = $1 AND fecha_inicio = $2
+        WHERE usuario_id = $1 AND date_trunc('minute', fecha_inicio) = date_trunc('minute', $2::timestamp)
     `;
     // En PostgreSQL/pg no existe '.affectedRows', las consultas DELETE/UPDATE devuelven las filas directamente si usas RETURNING,
     // pero para mantenerlo simple ejecutamos el query de forma directa.
