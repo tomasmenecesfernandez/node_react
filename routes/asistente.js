@@ -7,7 +7,14 @@ const openai = new OpenAI({
 
 export async function hacer_consulta_ia(texto) {
     try {
-const fechaActualISO = new Date().toLocaleString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' }).replace(' ', 'T');
+const ahora = new Date();
+// Multiplica las 3 horas de desfase por los milisegundos de una hora
+const tresHoras = 3 * 60 * 60 * 1000; 
+
+// Le restamos las 3 horas exactas al tiempo actual
+const fechaActualISO = new Date(ahora.getTime() - tresHoras)
+    .toISOString()
+    .slice(0, 19);
 
 
         const completion = await openai.chat.completions.create({
