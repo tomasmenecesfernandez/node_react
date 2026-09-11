@@ -7,11 +7,16 @@ const openai = new OpenAI({
 
 export async function hacer_consulta_ia(texto) {
     try {
-        const ahora = new Date();
-        const offset = ahora.getTimezoneOffset() * 60000;
-        const fechaActualISO = new Date(ahora.getTime() - offset)
-            .toISOString()
-            .slice(0, 19);
+const ahora = new Date();
+
+const año = ahora.getFullYear();
+const mes = String(ahora.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+const dia = String(ahora.getDate()).padStart(2, '0');
+const hora = String(ahora.getHours()).padStart(2, '0');
+const minutos = String(ahora.getMinutes()).padStart(2, '0');
+const segundos = String(ahora.getSeconds()).padStart(2, '0');
+
+const fechaActualISO = `${año}-${mes}-${dia}T${hora}:${minutos}:${segundos}`;
 
         const completion = await openai.chat.completions.create({
             model: "openrouter/free",
