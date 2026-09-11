@@ -15,7 +15,7 @@ export async function hacer_consulta_ia(texto) {
 
     // Tu prompt exacto del sistema
       const completion = await openai.chat.completions.create({
-                model: "openrouter/free",
+                model: "nvidia/nemotron-3-super-120b-a12b:free",
                 messages: [
                     {role:"system", content:`Sos un asistente que interpreta órdenes en español para un calendario.
     Fecha y hora actual: ${fechaActualISO} (formato ISO, zona horaria GMT-3).
