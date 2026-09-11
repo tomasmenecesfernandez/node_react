@@ -1,21 +1,18 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
-// CORRECCIÓN: Inicializamos usando GoogleGenerativeAI
-const aiGoogle = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// El resto de la configuración de OpenRouter queda exactamente igual
+// Configuramos OpenRouter con tu API Key
 const openai = new OpenAI({
     baseURL: "https://openrouter.ai",
     apiKey: process.env.OPENROUTER_API_KEY,
 });
+
 export async function hacer_consulta_ia(texto) {
     // Calculamos la hora exacta restando las 3 horas de desfase para tu sistema
     const ahora = new Date();
     const tresHoras = 3 * 60 * 60 * 1000; 
     const fechaActualISO = new Date(ahora.getTime() - tresHoras).toISOString().slice(0, 19);
 
-    // Este es tu prompt exacto del sistema
+    // Tu prompt exacto del sistema
     const promptSistema = `Sos un asistente que interpreta órdenes en español para un calendario.
     Fecha y hora actual: ${fechaActualISO} (formato ISO, zona horaria GMT-3).
 
@@ -45,44 +42,42 @@ export async function hacer_consulta_ia(texto) {
     
     Pedido del usuario: "${texto}"`;
 
-    // INTENTO 1: Probamos con Google Gemini de forma 100% gratuita
+    // INTENTO 1: Usamos el modelo GRATUITO de Nvidia en OpenRouter (Baja latencia)
     try {
-        // Usamos el modelo rápido y potente Gemini 2.5 Flash
-        const modeloGemini = aiGoogle.getGenerativeModel({ 
-            model: "gemini-1.5-flash", // Usamos 1.5 o 2.5 Flash según prefieras
-            generationConfig: { responseMimeType: "application/json" }
+        const completion = await openai.chat.completions.create({
+            model: "nvidia/llama-3.1-nemotron-70b-instruct:free", // El gratis de Nvidia ultra rápido
+            messages: [
+                { role: "system", content: promptSistema },
+                { role: "user", content: texto },
+            ],
         });
 
-        // Ejecutamos la consulta pasándole el prompt del sistema y el pedido juntos
-        const respuestaGoogle = await modeloGemini.generateContent(`${promptSistema}\n\nPedido del usuario: ${texto}`);
+        const respuestaIA = completion?.choices?.[0]?.message?.content;
+        if (!respuestaIA) throw new Error("El modelo gratuito no devolvió respuesta");
 
-        const respuestaIA = respuestaGoogle.response?.text(); // Ojo: text() lleva paréntesis () en Gemini
-        if (!respuestaIA) throw new Error("Gemini no devolvió texto");
+        return respuestaIA.replace(/```json|```/g, "").trim();
 
-        return respuestaIA.trim();
+    } catch (errorFree) {
+        console.warn("Modelo gratuito de Nvidia agotado o limitado. Usando tus créditos de auxilio...", errorFree.message);
 
-    } catch (errorGoogle) {
-        console.warn("Gemini falló o alcanzó límite por minuto. Saltando a OpenRouter de auxilio...", errorGoogle.message);
-
-        // INTENTO 2: Si Gemini falla, tu saldo de OpenRouter te rescata
+        // INTENTO 2: Si el gratis falla, te salvan tus $5.80 usando DeepSeek Chat (cuesta casi $0)
         try {
-            const completion = await openai.chat.completions.create({
-                // Cambié Nemotron Free por DeepSeek Chat (usa tus créditos, cuesta casi $0 y no se traba)
-                model: "deepseek/deepseek-chat",
+            const completionAux = await openai.chat.completions.create({
+                model: "deepseek/deepseek-chat", // Modelo de pago ultra barato para no trabar tu app
                 messages: [
                     { role: "system", content: promptSistema },
                     { role: "user", content: texto },
                 ],
             });
 
-            const respuestaIA = completion?.choices?.[0]?.message?.content;
-            if (!respuestaIA) throw new Error("OpenRouter no devolvió respuesta");
+            const respuestaIAAux = completionAux?.choices?.[0]?.message?.content;
+            if (!respuestaIAAux) throw new Error("El modelo de auxilio no devolvió respuesta");
 
-            return respuestaIA.replace(/```json|```/g, "").trim();
+            return respuestaIAAux.replace(/```json|```/g, "").trim();
 
-        } catch (errorOpenRouter) {
-            console.error("Ambos proveedores fallaron:", errorOpenRouter);
-            return JSON.stringify({ error: true, detalle: "Todos los servicios de IA están caídos", hora: fechaActualISO });
+        } catch (errorAux) {
+            console.error("Ambos modelos de OpenRouter fallaron:", errorAux);
+            return JSON.stringify({ error: true, detalle: "Todos los servicios de OpenRouter están caídos", hora: fechaActualISO });
         }
     }
 }
