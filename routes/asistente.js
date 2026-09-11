@@ -2,18 +2,22 @@ import OpenAI from "openai";
 
 // Configuramos OpenRouter con tu API Key
 const openai = new OpenAI({
-    baseURL: "https://openrouter.ai",
+    baseURL: "https://openrouter.ai/api/v1",
     apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 export async function hacer_consulta_ia(texto) {
+        try {
     // Calculamos la hora exacta restando las 3 horas de desfase para tu sistema
     const ahora = new Date();
     const tresHoras = 3 * 60 * 60 * 1000; 
     const fechaActualISO = new Date(ahora.getTime() - tresHoras).toISOString().slice(0, 19);
 
     // Tu prompt exacto del sistema
-    const promptSistema = `Sos un asistente que interpreta órdenes en español para un calendario.
+      const completion = await openai.chat.completions.create({
+                model: "openrouter/free",
+                messages: [
+                    {role:"system", content:`Sos un asistente que interpreta órdenes en español para un calendario.
     Fecha y hora actual: ${fechaActualISO} (formato ISO, zona horaria GMT-3).
 
     Analiza el siguiente pedido del usuario y devolvé SOLO una lista con un JSON o conjunto de JSONS( si te mencionan mas de una actividad) (sin markdown, sin texto adicional) con esta forma exacta, ahora te paso la plantilla pero vos podes agregarle los json que te pida el cliente no hay limite:
@@ -40,44 +44,20 @@ export async function hacer_consulta_ia(texto) {
     - Nunca agregues explicaciones, solo el JSON.
     - para hacer una modificacion crea dos plantillas una de borrar(borra tarea que quiere modificar) y otra de crear(nueva tarea con la cosa que cambio), si te dicen modificar o cambiame o algo parecido, interpreta bastantes sinominos
     
-    Pedido del usuario: "${texto}"`;
-
-    // INTENTO 1: Usamos el modelo GRATUITO de Nvidia en OpenRouter (Baja latencia)
-    try {
-        const completion = await openai.chat.completions.create({
-            model: "nvidia/llama-3.1-nemotron-70b-instruct:free", // El gratis de Nvidia ultra rápido
-            messages: [
-                { role: "system", content: promptSistema },
-                { role: "user", content: texto },
-            ],
-        });
-
-        const respuestaIA = completion?.choices?.[0]?.message?.content;
-        if (!respuestaIA) throw new Error("El modelo gratuito no devolvió respuesta");
-
-        return respuestaIA.replace(/```json|```/g, "").trim();
-
-    } catch (errorFree) {
-        console.warn("Modelo gratuito de Nvidia agotado o limitado. Usando tus créditos de auxilio...", errorFree.message);
-
-        // INTENTO 2: Si el gratis falla, te salvan tus $5.80 usando DeepSeek Chat (cuesta casi $0)
-        try {
-            const completionAux = await openai.chat.completions.create({
-                model: "deepseek/deepseek-chat", // Modelo de pago ultra barato para no trabar tu app
-                messages: [
-                    { role: "system", content: promptSistema },
+    Pedido del usuario: "${texto}"`
+                    },
                     { role: "user", content: texto },
                 ],
             });
 
-            const respuestaIAAux = completionAux?.choices?.[0]?.message?.content;
-            if (!respuestaIAAux) throw new Error("El modelo de auxilio no devolvió respuesta");
+            // CORRECCIÓN 2: Cambiamos 'const' por 'let' para que te permita usar el .replace() sin colgar el servidor
+            let respuestaIA = completion.choices[0].message.content;
+            respuestaIA = respuestaIA.replace(/```json|```/g, "").trim();
 
-            return respuestaIAAux.replace(/```json|```/g, "").trim();
-
-        } catch (errorAux) {
-            console.error("Ambos modelos de OpenRouter fallaron:", errorAux);
-            return JSON.stringify({ error: true, detalle: "Todos los servicios de OpenRouter están caídos", hora: fechaActualISO });
-        }
+            return respuestaIA;
+            
+    } catch (error) {
+        console.error("Error al consultar OpenRouter:", error);
+        return JSON.stringify({ error: true, detalle: error.message });
     }
 }
