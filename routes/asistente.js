@@ -7,9 +7,8 @@ const openai = new OpenAI({
 
 export async function hacer_consulta_ia(texto) {
     try {
-const opciones = { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-const formateador = new Intl.DateTimeFormat('sv-SE', opciones); 
-const fechaActualISO = formateador.format(new Date()).replace(' ', 'T');
+const fechaActualISO = new Date().toLocaleString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' }).replace(' ', 'T');
+
 
         const completion = await openai.chat.completions.create({
             model: "openrouter/free",
