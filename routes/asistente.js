@@ -18,7 +18,7 @@ const fechaActualISO = new Date(ahora.getTime() - tresHoras)
 
 
         const completion = await openai.chat.completions.create({
-            model: "openrouter/free",
+            model: "nvidia/nemotron-3-super-120b-a12b:free",
             messages: [
                 {
                     role: "system",
