@@ -63,7 +63,15 @@ const fechaActualISO = new Date(ahora.getTime() - tresHoras)
 
         return respuestaIA.replace(/```json|```/g, "").trim();
     } catch (error) {
+        const ahora = new Date();
+// Multiplica las 3 horas de desfase por los milisegundos de una hora
+const tresHoras = 3 * 60 * 60 * 1000; 
+
+// Le restamos las 3 horas exactas al tiempo actual
+const fechaActualISO = new Date(ahora.getTime() - tresHoras)
+    .toISOString()
+    .slice(0, 19);
         console.error("Error al consultar OpenRouter:", error);
-        return JSON.stringify({ error: true, detalle: error.message });
+        return JSON.stringify({ error: true, detalle: error.message , hora: fechaActualISO});
     }
 }
