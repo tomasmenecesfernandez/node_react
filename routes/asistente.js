@@ -23,7 +23,7 @@ const fechaActualISO = `${año}-${mes}-${dia}T${hora}:${minutos}:${segundos}`;
                 {
                     role: "system",
                     content: `Sos un asistente que interpreta órdenes en español para un calendario.
-    Fecha y hora actual: ${fechaActualISO} (formato ISO, zona horaria argentina).
+    Fecha y hora actual: ${fechaActualISO} (formato ISO, zona horaria GMT-3).
 
     Analiza el siguiente pedido del usuario y devolvé SOLO una lista con un JSON o conjunto de JSONS( si te mencionan mas de una actividad) (sin markdown, sin texto adicional) con esta forma exacta, ahora te paso la plantilla pero vos podes agregarle los json que te pida el cliente no hay limite:
 
