@@ -37,7 +37,7 @@ const modificar_tarea = async (plantilla, usuario_id) => {
     // En Postgres no se necesita STR_TO_DATE, la conversión de los strings 'YYYY-MM-DDTHH:mm:ss' es automática
     const query = `
         UPDATE tareas 
-        SET titulo = $1, descripcion = $2, fecha_inicio = $3, fecha_final = $4 
+        SET titulo = $1, descripcion = $2, fecha_inicio = $3, fecha_final = $4, completada=%7 
         WHERE usuario_id = $5 AND fecha_inicio = $6
     `;
     await hacer_consulta(query, [
@@ -46,7 +46,8 @@ const modificar_tarea = async (plantilla, usuario_id) => {
         plantilla.fecha_inicio, 
         plantilla.fecha_final, 
         usuario_id, 
-        plantilla.fecha_inicio
+        plantilla.fecha_inicio,
+        plantilla.completada
     ]);
     return "accion modificar";
 };
