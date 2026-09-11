@@ -1,15 +1,14 @@
-import { GoogleGenAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
-// 1. Configuramos el proveedor principal: Google Gemini
-const aiGoogle = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// CORRECCIÓN: Inicializamos usando GoogleGenerativeAI
+const aiGoogle = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 2. Configuramos el proveedor de auxilio: OpenRouter (usará tus $5.80)
+// El resto de la configuración de OpenRouter queda exactamente igual
 const openai = new OpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
+    baseURL: "https://openrouter.ai",
     apiKey: process.env.OPENROUTER_API_KEY,
 });
-
 export async function hacer_consulta_ia(texto) {
     // Calculamos la hora exacta restando las 3 horas de desfase para tu sistema
     const ahora = new Date();
@@ -49,16 +48,15 @@ export async function hacer_consulta_ia(texto) {
     // INTENTO 1: Probamos con Google Gemini de forma 100% gratuita
     try {
         // Usamos el modelo rápido y potente Gemini 2.5 Flash
-        const respuestaGoogle = await aiGoogle.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [
-                { role: "user", parts: [{ text: `${promptSistema}\n\nPedido del usuario: ${texto}` }] }
-            ],
-            // Forzamos a Gemini a responder puramente en formato JSON
-            config: { responseMimeType: "application/json" }
+        const modeloGemini = aiGoogle.getGenerativeModel({ 
+            model: "gemini-1.5-flash", // Usamos 1.5 o 2.5 Flash según prefieras
+            generationConfig: { responseMimeType: "application/json" }
         });
 
-        const respuestaIA = respuestaGoogle.response?.text;
+        // Ejecutamos la consulta pasándole el prompt del sistema y el pedido juntos
+        const respuestaGoogle = await modeloGemini.generateContent(`${promptSistema}\n\nPedido del usuario: ${texto}`);
+
+        const respuestaIA = respuestaGoogle.response?.text(); // Ojo: text() lleva paréntesis () en Gemini
         if (!respuestaIA) throw new Error("Gemini no devolvió texto");
 
         return respuestaIA.trim();
