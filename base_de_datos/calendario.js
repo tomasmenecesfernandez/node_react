@@ -16,7 +16,6 @@ const actualizar_tarea_calendario = async (plantilla, usuario_id) => {
         return "error";
     }
 };
-
 async function agregar_tarea(plantilla, usuario_id) {
     const query = `
         INSERT INTO tareas (usuario_id, titulo, descripcion, fecha_inicio, fecha_final, completada) 
@@ -32,7 +31,6 @@ async function agregar_tarea(plantilla, usuario_id) {
     ]);
     return "accion crear";
 }
-
 const modificar_tarea = async (plantilla, usuario_id) => {
     // En Postgres no se necesita STR_TO_DATE, la conversión de los strings 'YYYY-MM-DDTHH:mm:ss' es automática
     const query = `
@@ -51,7 +49,6 @@ const modificar_tarea = async (plantilla, usuario_id) => {
     ]);
     return "accion modificar";
 };
-
 const borrar_tarea = async (plantilla, usuario_id) => {
     const query = `
         DELETE FROM tareas 
