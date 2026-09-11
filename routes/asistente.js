@@ -8,7 +8,7 @@ const openai = new OpenAI({
 export async function hacer_consulta_ia(texto) {
     try {
 const ahora = new Date();
-const anio = ahora.getFullYear();
+const año = ahora.getFullYear();
 const mes = String(ahora.getMonth() + 1).padStart(2, '0'); 
 const dia = String(ahora.getDate()).padStart(2, '0');
 const hora = String(ahora.getHours()).padStart(2, '0');
